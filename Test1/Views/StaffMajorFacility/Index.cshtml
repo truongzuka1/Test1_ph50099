@@ -1,0 +1,82 @@
+﻿@model List<Test1.ViewModel.StaffMajorFacilityViewModel>
+@{
+    ViewData["Title"] = "Phân phối chuyên ngành - cơ sở";
+    var staffs = ViewBag.Staffs as List<Test1.Models.Staff>;
+    var majorFacilities = ViewBag.MajorFacilities as List<Test1.Models.MajorFacility>;
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5>Phân phối chuyên ngành - cơ sở</h5>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMappingModal">Thêm phân phối</button>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nhân viên</th>
+                        <th>Chuyên ngành</th>
+                        <th>Cơ sở</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.StaffName</td>
+                            <td>@item.MajorName</td>
+                            <td>@item.FacilityName</td>
+                            <td>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc muốn xóa phân phối này?')">Xóa</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm phân phối -->
+<div class="modal fade" id="addMappingModal" tabindex="-1" aria-labelledby="addMappingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="Create" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMappingModalLabel">Thêm phân phối chuyên ngành - cơ sở</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nhân viên</label>
+                        <select name="idStaff" class="form-select" required>
+                            <option value="">-- Chọn nhân viên --</option>
+                            @foreach (var staff in staffs)
+                            {
+                                <option value="@staff.Id">@staff.Name (@staff.StaffCode)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Chuyên ngành - Cơ sở</label>
+                        <select name="idMajorFacility" class="form-select" required>
+                            <option value="">-- Chọn chuyên ngành - cơ sở --</option>
+                            @foreach (var mf in majorFacilities)
+                            {
+                                <option value="@mf.Id">
+                                    @mf.IdMajorNavigation?.Name - @mf.IdDepartmentFacilityNavigation?.IdFacilityNavigation?.Name
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

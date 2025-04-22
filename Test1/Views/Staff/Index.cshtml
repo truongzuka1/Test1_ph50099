@@ -1,0 +1,266 @@
+﻿@model List<Test1.ViewModel.StaffViewModel>
+
+@{
+    ViewData["Title"] = "Quản lý nhân viên";
+}
+
+<h2>Quản lý nhân viên</h2>
+
+<form method="get" asp-action="Index">
+    <div class="form-group">
+        <label for="searchTerm">Tìm kiếm nhân viên:</label>
+        <input type="text" id="searchTerm" name="searchTerm" class="form-control" placeholder="Nhập tên hoặc mã nhân viên" value="@ViewData["SearchTerm"]">
+    </div>
+    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+</form>
+
+<br />
+<button class="btn btn-primary mb-3" onclick="openAddModal()">+ Thêm nhân viên</button>
+
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Tên</th>
+            <th>Mã NV</th>
+            <th>Account FE</th>
+            <th>Account FPT</th>
+            <th>Chuyên ngành</th>
+            <th>Cơ sở</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var staff in Model)
+        {
+            <tr>
+                <td>@staff.Name</td>
+                <td>@staff.StaffCode</td>
+                <td>@staff.AccountFe</td>
+                <td>@staff.AccountFpt</td>
+                <td>@staff.MajorName</td>
+                <td>@staff.DepartmentName</td>
+                <td>
+                    @if (staff.Status == 1)
+                    {
+                        <span class="badge bg-success">Hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Ngừng</span>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="openEditModal(@staff.Id)">Sửa</button>
+                    <form asp-action="Delete" method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="@staff.Id" />
+                        <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                    </form>
+                    <form asp-action="UpdateStatus" method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="@staff.Id" />
+                        <input type="hidden" name="status" value="@(staff.Status == 1 ? 0 : 1)" />
+                        <button type="submit" class="btn btn-sm btn-info">
+                            @(staff.Status == 1 ? "Tắt" : "Bật")
+                        </button>
+                    </form>
+                </td>
+                <td>
+                    <a asp-action="Index" asp-controller="StaffMajorFacility" asp-route-id="@staff.Id" class="btn btn-sm btn-outline-primary">
+                        Phân phối chuyên ngành - cơ sở
+                    </a>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal Thêm Nhân Viên -->
+<div class="modal fade" id="staffModal" tabindex="-1" role="dialog" aria-labelledby="staffModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staffModalLabel">Thêm Nhân Viên</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createStaffForm">
+                    <div class="form-group">
+                        <label for="Name">Tên Nhân Viên</label>
+                        <input type="text" class="form-control" id="Name" name="Name" required />
+                        <div class="invalid-feedback" id="NameError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="StaffCode">Mã Nhân Viên</label>
+                        <input type="text" class="form-control" id="StaffCode" name="StaffCode" required />
+                        <div class="invalid-feedback" id="StaffCodeError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="AccountFe">Tài Khoản Fe</label>
+                        <input type="text" class="form-control" id="AccountFe" name="AccountFe" />
+                        <div class="invalid-feedback" id="AccountFeError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="AccountFpt">Tài Khoản Fpt</label>
+                        <input type="text" class="form-control" id="AccountFpt" name="AccountFpt" />
+                        <div class="invalid-feedback" id="AccountFptError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="btnSaveCreate">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa Nhân Viên -->
+<div class="modal fade" id="editStaffModal" tabindex="-1" role="dialog" aria-labelledby="editStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editStaffModalLabel">Sửa thông tin nhân viên</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editStaffForm">
+                    <div class="form-group">
+                        <label for="Name">Họ và Tên</label>
+                        <input type="text" class="form-control" id="Name" name="Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="StaffCode">Mã nhân viên</label>
+                        <input type="text" class="form-control" id="StaffCode" name="StaffCode" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="AccountFe">Tài khoản FE</label>
+                        <input type="text" class="form-control" id="AccountFe" name="AccountFe">
+                    </div>
+                    <div class="form-group">
+                        <label for="AccountFpt">Tài khoản FPT</label>
+                        <input type="text" class="form-control" id="AccountFpt" name="AccountFpt">
+                    </div>
+                    <div class="form-group">
+                        <label for="Status">Trạng thái</label>
+                        <select id="Status" name="Status" class="form-control">
+                            <option value="1">Hoạt động</option>
+                            <option value="0">Không hoạt động</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="submit" class="btn btn-primary" id="saveEditButton">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Khi nhấn nút Lưu trong modal Thêm Nhân Viên
+            $('#btnSaveCreate').click(function () {
+                var formData = $('#createStaffForm').serialize();
+
+                // Kiểm tra tính hợp lệ của form
+                if ($('#createStaffForm')[0].checkValidity()) {
+                    var formValues = {};
+                    $('#createStaffForm').serializeArray().map(function (x) { formValues[x.name] = x.value; });
+
+                    // Tạo nhân viên mới và thêm vào danh sách
+                    var staff = {
+                        Id: 'newId', // Tạo id mới
+                        Name: formValues.Name,
+                        StaffCode: formValues.StaffCode,
+                        AccountFe: formValues.AccountFe,
+                        AccountFpt: formValues.AccountFpt,
+                        Status: 1 // Giả sử trạng thái mặc định là "Hoạt động"
+                    };
+
+                    // Tạo các nút hành động cho nhân viên mới
+                    var actionButtons = `
+                                    <button class="btn btn-sm btn-warning" onclick="openEditModal(${staff.Id})">Sửa</button>
+                                    <form asp-action="Delete" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="${staff.Id}" />
+                                        <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                                    </form>
+                                    <form asp-action="UpdateStatus" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="${staff.Id}" />
+                                        <input type="hidden" name="status" value="${staff.Status == 1 ? 0 : 1}" />
+                                        <button type="submit" class="btn btn-sm btn-info">
+                                            ${staff.Status == 1 ? "Tắt" : "Bật"}
+                                        </button>
+                                    </form>
+                                `;
+
+                    // Thêm nhân viên vào bảng (cập nhật UI)
+                    var newRow = $('<tr><td>' + staff.Name + '</td><td>' + staff.StaffCode + '</td><td>' + staff.AccountFe + '</td><td>' + staff.AccountFpt + '</td><td>' + staff.MajorName + '</td><td>' + staff.DepartmentName + '</td><td><span class="badge bg-success">Hoạt động</span></td><td>' + actionButtons + '</td></tr>');
+                    $('tbody').append(newRow);
+
+                    // Đóng modal
+                    $('#staffModal').modal('hide');
+                    alert("Thêm nhân viên thành công!");
+                } else {
+                    alert("Vui lòng kiểm tra lại thông tin nhập.");
+                }
+            });
+
+            // Khi nhấn nút Lưu trong modal Sửa Nhân Viên
+            $('#saveEditButton').click(function () {
+                var formData = $('#editStaffForm').serialize();
+                $.ajax({
+                    url: '/Staff/Edit',  // Cập nhật URL tương ứng với action Edit
+                    type: 'POST',
+                    data: formData,
+                    success: function (data) {
+                        if (data.success) {
+                            var row = $('button[data-id="' + $('#EditId').val() + '"]').closest('tr');
+                            row.find('td:eq(0)').text($('#EditName').val());
+                            row.find('td:eq(1)').text($('#EditStaffCode').val());
+                            alert("Cập nhật thành công!");
+                            $('#editStaffModal').modal('hide');
+                        } else {
+                            alert(data.message);
+                        }
+                    },
+                    error: function () {
+                        alert("Có lỗi xảy ra khi lưu dữ liệu!");
+                    }
+                });
+            });
+        });
+
+        // Mở modal Thêm Nhân Viên
+        function openAddModal() {
+            $('#staffModal').modal('show');
+        }
+
+        // Mở modal Sửa Nhân Viên
+        $(document).ready(function () {
+            // Mở modal và điền dữ liệu nhân viên vào form sửa
+            $('.edit-button').click(function () {
+                var id = $(this).data('id');
+                $.ajax({
+                    url: '/Staff/Edit/' + id,
+                    type: 'GET',
+                    success: function (data) {
+                        if (data.success) {
+                            $('#EditId').val(data.staff.Id);
+                            $('#EditName').val(data.staff.Name);
+                            $('#EditStaffCode').val(data.staff.StaffCode);
+                            $('#EditStatus').val(data.staff.Status);
+                            $('#editStaffModal').modal('show');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}
